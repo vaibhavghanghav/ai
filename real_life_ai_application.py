@@ -1,27 +1,29 @@
-def simple_calculator():
-    # Ask for user input
-    num1 = float(input("Enter the first number: "))
-    num2 = float(input("Enter the second number: "))
+# Install the TextBlob library if you don't have it
+# !pip install textblob
+
+from textblob import TextBlob
+
+def analyze_sentiment(text):
+    # Create a TextBlob object
+    blob = TextBlob(text)
     
-    operation = input("Enter operation (+, -, *, /): ")
-
-    # Perform the operation using decision-making (AI-like logic)
-    if operation == "+":
-        result = num1 + num2
-    elif operation == "-":
-        result = num1 - num2
-    elif operation == "*":
-        result = num1 * num2
-    elif operation == "/":
-        if num2 != 0:
-            result = num1 / num2
-        else:
-            result = "Error! Division by zero."
+    # Get the sentiment polarity: -1 (negative) to 1 (positive)
+    sentiment = blob.sentiment.polarity
+    
+    # Print the result
+    if sentiment > 0:
+        print("The sentiment of the text is Positive.")
+    elif sentiment < 0:
+        print("The sentiment of the text is Negative.")
     else:
-        result = "Invalid operation!"
+        print("The sentiment of the text is Neutral.")
 
-    # Display the result
-    print("Result: ", result)
+# Example texts
+text1 = "I love this product, it works great!"
+text2 = "I hate waiting in long lines at the store."
+text3 = "The weather is okay today."
 
-# Run the calculator
-simple_calculator()
+# Analyze sentiment of each text
+analyze_sentiment(text1)
+analyze_sentiment(text2)
+analyze_sentiment(text3)
