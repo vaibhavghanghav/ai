@@ -1,44 +1,39 @@
 import numpy as np
 import skfuzzy as fuzz
-from skfuzzy import control as ctrl
+import matplotlib.pyplot as plt
 
-# Define fuzzy variables
-input1 = ctrl.Antecedent(np.arange(0, 101, 1), 'input1')
-input2 = ctrl.Antecedent(np.arange(0, 101, 1), 'input2')
-similarity = ctrl.Consequent(np.arange(0, 101, 1), 'similarity')
+# Step 1: Define a range of possible values for a feature (e.g., aspect ratio)
+x = np.linspace(0, 1, 100)  # Example range for normalized feature values
 
-# Define membership functions
-input1['low'] = fuzz.trimf(input1.universe, [0, 0, 50])
-input1['medium'] = fuzz.trimf(input1.universe, [25, 50, 75])
-input1['high'] = fuzz.trimf(input1.universe, [50, 100, 100])
+# Step 2: Define membership functions
+triangle = fuzz.trimf(x, [0.2, 0.5, 0.8])  # Triangular membership function
+trapezoid = fuzz.trapmf(x, [0.1, 0.3, 0.7, 0.9])  # Trapezoidal membership function
+gaussian = fuzz.gaussmf(x, 0.5, 0.1)  # Gaussian membership function
 
-input2['low'] = fuzz.trimf(input2.universe, [0, 0, 50])
-input2['medium'] = fuzz.trimf(input2.universe, [25, 50, 75])
-input2['high'] = fuzz.trimf(input2.universe, [50, 100, 100])
+# Visualize membership functions
+plt.figure(figsize=(8, 4))
+plt.plot(x, triangle, label="Triangle")
+plt.plot(x, trapezoid, label="Trapezoid")
+plt.plot(x, gaussian, label="Gaussian")
+plt.title("Fuzzy Membership Functions for Shape Matching")
+plt.xlabel("Feature Value")
+plt.ylabel("Membership Degree")
+plt.legend()
+plt.show()
 
-similarity['low'] = fuzz.trimf(similarity.universe, [0, 0, 50])
-similarity['medium'] = fuzz.trimf(similarity.universe, [25, 50, 75])
-similarity['high'] = fuzz.trimf(similarity.universe, [50, 100, 100])
+# Step 3: Example feature extraction for a handwritten character
+character_feature = 0.45  # Example feature value (normalized)
 
-# Define rules
-rule1 = ctrl.Rule(input1['low'] & input2['low'], similarity['low'])
-rule2 = ctrl.Rule(input1['medium'] | input2['medium'], similarity['medium'])
-rule3 = ctrl.Rule(input1['high'] & input2['high'], similarity['high'])
+# Step 4: Calculate membership degrees
+triangle_degree = fuzz.interp_membership(x, triangle, character_feature)
+trapezoid_degree = fuzz.interp_membership(x, trapezoid, character_feature)
+gaussian_degree = fuzz.interp_membership(x, gaussian, character_feature)
 
-# Create control system
-similarity_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
-similarity_simulation = ctrl.ControlSystemSimulation(similarity_ctrl)
+print("Membership Degrees:")
+print(f"Triangle: {triangle_degree:.2f}")
+print(f"Trapezoid: {trapezoid_degree:.2f}")
+print(f"Gaussian: {gaussian_degree:.2f}")
 
-# Simulate with inputs
-similarity_simulation.input['input1'] = 30
-similarity_simulation.input['input2'] = 70
-similarity_simulation.compute()
-
-# Print output
-print(f"Similarity score: {similarity_simulation.output['similarity']}")
-
-# 7. Visualize results
-aspect_ratio.view()
-symmetry.view()
-stroke_curvature.view()
-similarity.view(similarity_simulation)
+# Step 5: Combine membership degrees (using an example rule-based approach)
+overall_similarity = max(triangle_degree, trapezoid_degree, gaussian_degree)
+print(f"Overall Similarity: {overall_similarity:.2f}")
