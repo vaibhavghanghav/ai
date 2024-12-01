@@ -1,76 +1,44 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import skimage.measure as measure
-from skimage import draw
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
 
-# Fuzzy membership functions
-def thin_membership(aspect_ratio):
-    """Fuzzy set for thin shapes (high aspect ratio)."""
-    return min(1, max(0, (aspect_ratio - 1) / 2))
+# Define fuzzy variables
+input1 = ctrl.Antecedent(np.arange(0, 101, 1), 'input1')
+input2 = ctrl.Antecedent(np.arange(0, 101, 1), 'input2')
+similarity = ctrl.Consequent(np.arange(0, 101, 1), 'similarity')
 
-def wide_membership(aspect_ratio):
-    """Fuzzy set for wide shapes (low aspect ratio)."""
-    return min(1, max(0, (2 - aspect_ratio) / 2))
+# Define membership functions
+input1['low'] = fuzz.trimf(input1.universe, [0, 0, 50])
+input1['medium'] = fuzz.trimf(input1.universe, [25, 50, 75])
+input1['high'] = fuzz.trimf(input1.universe, [50, 100, 100])
 
-def curved_membership(stroke_count):
-    """Fuzzy set for curved shapes (low stroke count)."""
-    return min(1, max(0, (5 - stroke_count) / 5))
+input2['low'] = fuzz.trimf(input2.universe, [0, 0, 50])
+input2['medium'] = fuzz.trimf(input2.universe, [25, 50, 75])
+input2['high'] = fuzz.trimf(input2.universe, [50, 100, 100])
 
-def straight_membership(stroke_count):
-    """Fuzzy set for straight shapes (high stroke count)."""
-    return min(1, max(0, (stroke_count - 2) / 5))
+similarity['low'] = fuzz.trimf(similarity.universe, [0, 0, 50])
+similarity['medium'] = fuzz.trimf(similarity.universe, [25, 50, 75])
+similarity['high'] = fuzz.trimf(similarity.universe, [50, 100, 100])
 
-# Simulated handwritten character shape
-def generate_character():
-    """Generate a simple handwritten character shape."""
-    image = np.zeros((100, 100), dtype=int)
-    rr, cc = draw.line(20, 20, 80, 80)  # Simple diagonal line (could be part of 'X')
-    image[rr, cc] = 1
-    return image
+# Define rules
+rule1 = ctrl.Rule(input1['low'] & input2['low'], similarity['low'])
+rule2 = ctrl.Rule(input1['medium'] | input2['medium'], similarity['medium'])
+rule3 = ctrl.Rule(input1['high'] & input2['high'], similarity['high'])
 
-def extract_features(character_image):
-    """Extract features from a binary image (e.g., aspect ratio, stroke count)."""
-    # Aspect Ratio: Width / Height
-    height, width = character_image.shape
-    aspect_ratio = width / height
+# Create control system
+similarity_ctrl = ctrl.ControlSystem([rule1, rule2, rule3])
+similarity_simulation = ctrl.ControlSystemSimulation(similarity_ctrl)
 
-    # Stroke Count: Count number of objects (connected components)
-    labeled, num_features = measure.label(character_image, connectivity=2)
-    return aspect_ratio, num_features
+# Simulate with inputs
+similarity_simulation.input['input1'] = 30
+similarity_simulation.input['input2'] = 70
+similarity_simulation.compute()
 
-def match_shape(character_image):
-    """Match the shape to a fuzzy set."""
-    aspect_ratio, stroke_count = extract_features(character_image)
+# Print output
+print(f"Similarity score: {similarity_simulation.output['similarity']}")
 
-    # Apply fuzzy logic to determine if the shape is thin, wide, curved, or straight
-    thin_score = thin_membership(aspect_ratio)
-    wide_score = wide_membership(aspect_ratio)
-    curved_score = curved_membership(stroke_count)
-    straight_score = straight_membership(stroke_count)
-
-    print(f"Aspect Ratio: {aspect_ratio}")
-    print(f"Stroke Count: {stroke_count}")
-    print(f"Thin Score: {thin_score}")
-    print(f"Wide Score: {wide_score}")
-    print(f"Curved Score: {curved_score}")
-    print(f"Straight Score: {straight_score}")
-
-    # Example of fuzzy decision making
-    if thin_score > wide_score:
-        print("The shape is more Thin")
-    else:
-        print("The shape is more Wide")
-
-    if curved_score > straight_score:
-        print("The shape is Curved")
-    else:
-        print("The shape is Straight")
-
-# Generate a character and match it
-character_image = generate_character()
-plt.imshow(character_image, cmap='gray')
-plt.title("Generated Handwritten Character")
-plt.show()
-
-# Perform shape matching
-match_shape(character_image)
+# 7. Visualize results
+aspect_ratio.view()
+symmetry.view()
+stroke_curvature.view()
+similarity.view(similarity_simulation)
